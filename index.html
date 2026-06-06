@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="true">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vacaciones IMSS">
+    <meta name="theme-color" content="#1C4C3E">
+    <meta name="description" content="Aplicación para el control de vacaciones del personal OOAD Norte CDMX del IMSS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%231C4C3E' width='180' height='180'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>📅</text></svg>">
+    <title>Control de Vacaciones - OOAD Norte CDMX | IMSS</title>
+    <!-- Tailwind CSS para Estilos Modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-imss-green { background-color: #1C4C3E; }
+        .text-imss-green { color: #1C4C3E; }
+        .border-imss-green { border-color: #1C4C3E; }
+        .bg-imss-gold { background-color: #B38E5D; }
+        .text-imss-gold { color: #B38E5D; }
+        .border-imss-gold { border-color: #B38E5D; }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden pb-20 md:pb-0">
+
+    <!-- SIDEBAR (Solo Desktop) -->
+    <aside class="w-64 bg-imss-green text-white flex flex-col justify-between hidden md:flex">
+        <div>
+            <div class="p-5 border-b border-emerald-800 flex items-center space-x-3">
+                <div class="bg-white p-2 rounded-lg text-imss-green font-bold text-xl tracking-wider">IMSS</div>
+                <div>
+                    <h1 class="text-xs font-bold tracking-wider uppercase">OOAD Norte DF</h1>
+                    <p class="text-[10px] text-emerald-300">Personal y Fuerza de Trabajo</p>
+                </div>
+            </div>
+            <nav class="mt-6 px-3 space-y-1">
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 bg-emerald-900 text-white font-medium rounded-lg transition">
+                    <i class="fa-solid fa-calendar-days text-lg"></i>
+                    <span>Calendario 2026</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-emerald-800 text-center text-xs text-emerald-300">
+            Sistema de Vacaciones v6.1
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        
+        <!-- TOP NAVBAR -->
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-10 flex-shrink-0">
+            <div class="flex items-center space-x-3">
+                <button class="md:hidden text-gray-600 focus:outline-none" onclick="toggleFiltros()">
+                    <i class="fa-solid fa-sliders text-xl"></i>
+                </button>
+                <div class="text-sm font-semibold text-gray-700 hidden sm:block">
+                    Jefatura de Servicios de Desarrollo de Personal &middot; <span class="font-normal text-gray-500">Departamento de Personal</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="h-10 w-10 rounded-full bg-imss-green text-white flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTAINER -->
+        <div class="p-6 max-w-7xl w-full mx-auto space-y-6 pb-24 md:pb-6">
+            
+            <!-- HEADER DEL REPORTE -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-800">Tabla de Días de Vacaciones a Disfrutar 2026</h2>
+                <p class="text-sm text-gray-500 mt-1">Cálculo de derechos vacacionales con deducción dinámica y visualización optimizada.</p>
+            </div>
+            
+            <!-- CONTENEDOR DE FILTROS RESPONSIVO -->
+            <div id="filtros-sheet" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center opacity-0 pointer-events-none transition-opacity duration-300 md:relative md:inset-auto md:bg-transparent md:backdrop-blur-none md:z-0 md:flex md:items-stretch md:opacity-100 md:pointer-events-auto md:transition-none">
+                <div class="bg-white w-full rounded-t-3xl p-6 shadow-2xl transform translate-y-full transition-transform duration-300 flex flex-col max-h-[85vh] md:w-full md:rounded-xl md:border md:border-gray-200 md:shadow-sm md:transform-none md:transition-none md:max-h-none md:p-6">
+                    
+                    <!-- Header del Sheet (Solo Móvil) -->
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3 md:hidden flex-shrink-0">
+                        <h3 class="text-lg font-bold text-gray-800">Configuración de Vacaciones</h3>
+                        <button onclick="toggleFiltros()" class="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Cuerpo de Filtros Scrollable en móvil -->
+                    <div class="overflow-y-auto pr-2 space-y-4 md:overflow-visible md:pr-0 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-5 md:gap-4">
+                        <!-- 1. TURNO -->
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-emerald-800 mb-1 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-business-time"></i> 1. Turno de Trabajo:
+                            </label>
+                            <select id="filter-turno" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-700 focus:outline-none transition-all">
+                                <option value="todos">-- Todos los Turnos --</option>
+                                <option value="matutino">Matutino / Vespertino</option>
+                                <option value="nocturno">Nocturno (Regla Especial)</option>
+                                <option value="acumulada">Jornada Acumulada (Especial)</option>
+                            </select>
+                        </div>
+
+                        <!-- 2. DESCANSOS -->
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-emerald-800 mb-1 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-bed"></i> 2. Rol de Descanso:
+                            </label>
+                            <select id="filter-descanso" disabled class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-400 focus:ring-2 focus:ring-emerald-700 focus:outline-none transition-all">
+                                <option value="">-- Seleccione un turno primero --</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. ROLES DE INICIO -->
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-emerald-800 mb-1 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-calendar-plus"></i> 3. Rol de Inicio Vacacional:
+                            </label>
+                            <select id="filter-rol-inicio" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-700 focus:outline-none transition-all">
+                                <option value="ninguno">-- Seleccione Inicio --</option>
+                                <option value="01">01 (16 de Enero)</option>
+                                <option value="02">02 (30 de Enero)</option>
+                                <option value="03">03 (16 de Febrero)</option>
+                                <option value="04">04 (02 de Marzo)</option>
+                                <option value="05">05 (19 de Marzo)</option>
+                                <option value="06">06 (06 de Abril)</option>
+                                <option value="07">07 (22 de Abril)</option>
+                                <option value="08">08 (07 de Mayo)</option>
+                                <option value="09">09 (25 de Mayo)</option>
+                                <option value="10">10 (08 de Junio)</option>
+                                <option value="11">11 (22 de Junio)</option>
+                                <option value="12">12 (06 de Julio)</option>
+                                <option value="13">13 (20 de Julio)</option>
+                                <option value="14">14 (03 de Agosto)</option>
+                                <option value="15">15 (20 de Agosto)</option>
+                                <option value="16">16 (03 de Septiembre)</option>
+                                <option value="17">17 (21 de Septiembre)</option>
+                                <option value="18">18 (05 de Octubre)</option>
+                                <option value="19">19 (19 de Octubre)</option>
+                                <option value="20">20 (02 de Noviembre)</option>
+                                <option value="21">21 (17 de Noviembre)</option>
+                                <option value="22">22 (01 de Diciembre)</option>
+                                <option value="23">23 (15 de Diciembre)</option>
+                                <option value="24">24 (30 de Diciembre)</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. MARCAS DE DISFRUTE -->
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-emerald-800 mb-1 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-umbrella-beach"></i> 4. Marca (Duración):
+                            </label>
+                            <select id="filter-disfrute" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-700 focus:outline-none transition-all">
+                                <option value="ninguno">-- Seleccione Duración --</option>
+                                <option value="0">0 DISFRUTE DE 20 DIAS</option>
+                                <option value="1">1 DISFRUTE DE 10 DIAS</option>
+                                <option value="2">2 DISFRUTE DE 20 DIAS</option>
+                                <option value="3">3 DISFRUTE DE 15 DIAS</option>
+                                <option value="4">4 DISFRUTE DE 10 DIAS</option>
+                                <option value="5">5 DISFRUTE DE 15 DIAS</option>
+                                <option value="6">6 DISFRUTE DE 15 DIAS</option>
+                                <option value="9">9 DISFRUTE DE 10 DIAS</option>
+                            </select>
+                        </div>
+
+                        <!-- 5. DÍAS DISFRUTADOS PREVIAMENTE -->
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-emerald-800 mb-1 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-calendar-minus"></i> 5. Disfrutados Previos:
+                            </label>
+                            <input type="number" id="filter-previos" min="0" value="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-700 focus:outline-none transition-all" placeholder="Ej. 2">
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de Aplicar (Solo Móvil) -->
+                    <button onclick="toggleFiltros()" class="w-full mt-5 bg-imss-green text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-900/20 active:scale-95 transition-transform md:hidden flex-shrink-0">
+                        Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- METRICAS / CONTADORES DINÁMICOS VIVOS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
+                    <div class="p-3 bg-amber-50 text-imss-gold rounded-lg text-xl"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hábiles a Programar</p>
+                        <h3 class="text-xl font-bold text-imss-gold" id="metric-disfrute-dias">0 Días</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEYENDA -->
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                    <i class="fa-solid fa-circle-info text-imss-green"></i>
+                    <span>Nomenclatura Operativa:</span>
+                </div>
+                <div class="flex flex-wrap gap-3 text-xs">
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-emerald-600 inline-block"></span> <span class="text-gray-600 font-medium">H = Hábil ordinario</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-gray-700 inline-block"></span> <span class="text-gray-600 font-bold">D = Descanso Oficial</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-gray-200 border border-dashed border-gray-400 inline-block"></span> <span class="text-gray-600 font-medium">N = No Laborable / No Vacacionable</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-amber-500 inline-block"></span> <span class="text-gray-600 font-bold">V = Vacaciones Aplicadas</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-red-500 inline-block"></span> <span class="text-gray-600 font-medium">F = Festivo Oficial</span></span>
+                </div>
+            </div>
+
+            <!-- CALENDAR GRID (DINÁMICO) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="calendar-wrapper">
+                <!-- Carga dinámica -->
+            </div>
+
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (Solo Móvil) -->
+    <nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-center items-center py-3 pb-safe z-40 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="toggleFiltros()" class="flex flex-col items-center p-2 text-imss-green hover:text-emerald-800 transition-colors">
+            <i class="fa-solid fa-sliders text-2xl mb-1"></i>
+            <span class="text-xs font-bold uppercase tracking-wider">Filtros</span>
+        </button>
+    </nav>
+
+    <!-- MODAL -->
+    <div id="day-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white w-96 rounded-xl p-6 shadow-xl transform scale-95 transition-transform duration-200">
+            <div class="flex justify-between items-start">
+                <h4 class="text-lg font-bold text-gray-800" id="modal-date-title">Detalle del Día</h4>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="mt-4 space-y-3">
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-500">Estado en Sistema:</span>
+                    <span class="text-sm font-bold" id="modal-day-status">-</span>
+                </div>
+                <div class="text-xs text-gray-400">
+                    * Los descansos contractuales (D), días inhábiles de rol (N) y festivos nacionales oficiales (F) jamás descuentan días de vacaciones vigentes.
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-imss-green text-white rounded-lg text-sm hover:bg-emerald-900 transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROL LOGICO AVANZADO v6.1 -->
+    <script>
+        const estructuraDescansos = {
+            matutino: [
+                { label: "Lunes - Martes", descansos: [1, 2], habiles: null },
+                { label: "Martes - Miércoles", descansos: [2, 3], habiles: null },
+                { label: "Miércoles - Jueves", descansos: [3, 4], habiles: null },
+                { label: "Jueves - Viernes", descansos: [4, 5], habiles: null },
+                { label: "Viernes - Sábado", descansos: [5, 6], habiles: null },
+                { label: "Sábado - Domingo", descansos: [6, 0], habiles: null },
+                { label: "Domingo - Lunes", descansos: [0, 1], habiles: null }
+            ],
+            nocturno: [
+                { label: "Descanso Lunes (Hábiles: Mar-Jue-Sáb)", descansos: [1], habiles: [2, 4, 6] },
+                { label: "Descanso Martes (Hábiles: Mié-Vie-Dom)", descansos: [2], habiles: [3, 5, 0] },
+                { label: "Descanso Miércoles (Hábiles: Lun-Jue-Sáb)", descansos: [3], habiles: [1, 4, 6] },
+                { label: "Descanso Jueves (Hábiles: Mar-Vie-Dom)", descansos: [4], habiles: [2, 5, 0] },
+                { label: "Descanso Viernes (Hábiles: Lun-Mié-Sáb)", descansos: [5], habiles: [1, 3, 6] },
+                { label: "Descanso Sábado (Hábiles: Mar-Jue-Dom)", descansos: [6], habiles: [2, 4, 0] },
+                { label: "Descanso Domingo (Hábiles: Lun-Mié-Vie)", descansos: [0], habiles: [1, 3, 5] }
+            ],
+            acumulada: [
+                { label: "Descanso Lun a Vie (Hábiles: Sáb-Dom)", descansos: [1, 2, 3, 4, 5], habiles: [6, 0] },
+                { label: "Descanso Lun-Mié-Jue-Vie-Dom (Hábiles: Mar-Sáb)", descansos: [1, 3, 4, 5, 0], habiles: [2, 6] },
+                { label: "Descanso Lun-Mar-Mié-Vie-Sáb (Hábiles: Jue-Dom)", descansos: [1, 2, 3, 5, 6], habiles: [4, 0] }
+            ]
+        };
+
+        const catalogoMarcasDisfrute = {
+            "0": 20, "1": 10, "2": 20, "3": 15, "4": 10, "5": 15, "6": 15, "9": 10
+        };
+
+        const catalogoRolesInicio = {
+            "01": { dia: 16, mes: 1 }, "02": { dia: 30, mes: 1 }, "03": { dia: 16, mes: 2 },
+            "04": { dia: 2,  mes: 3 }, "05": { dia: 19, mes: 3 }, "06": { dia: 6,  mes: 4 },
+            "07": { dia: 22, mes: 4 }, "08": { dia: 7,  mes: 5 }, "09": { dia: 25, mes: 5 },
+            "10": { dia: 8,  mes: 6 }, "11": { dia: 22, mes: 6 }, "12": { dia: 6,  mes: 7 },
+            "13": { dia: 20, mes: 7 }, "14": { dia: 3,  mes: 8 }, "15": { dia: 20, mes: 8 },
+            "16": { dia: 3,  mes: 9 }, "17": { dia: 21, mes: 9 }, "18": { dia: 5,  mes: 10 },
+            "19": { dia: 19, mes: 10 }, "20": { dia: 2,  mes: 11 }, "21": { dia: 17, mes: 11 },
+            "22": { dia: 1,  mes: 12 }, "23": { dia: 15, mes: 12 }, "24": { dia: 30, mes: 12 }
+        };
+
+        const mesesData = [
+            { id: 1, nombre: 'Enero', dias: 31, startOffset: 3 }, { id: 2, nombre: 'Febrero', dias: 28, startOffset: 6 },
+            { id: 3, nombre: 'Marzo', dias: 31, startOffset: 6 }, { id: 4, nombre: 'Abril', dias: 30, startOffset: 2 },
+            { id: 5, nombre: 'Mayo', dias: 31, startOffset: 4 }, { id: 6, nombre: 'Junio', dias: 30, startOffset: 0 },
+            { id: 7, nombre: 'Julio', dias: 31, startOffset: 2 }, { id: 8, nombre: 'Agosto', dias: 31, startOffset: 5 },
+            { id: 9, nombre: 'Septiembre', dias: 30, startOffset: 1 }, { id: 10, nombre: 'Octubre', dias: 31, startOffset: 3 },
+            { id: 11, nombre: 'Noviembre', dias: 30, startOffset: 6 }, { id: 12, nombre: 'Diciembre', dias: 31, startOffset: 1 }
+        ];
+
+        const festivos2026 = ["1-1", "2-2", "16-3","2-4", "3-4" , "4-4" , "1-5" , "10-5", "15-9" , "16-9", "16-11", "25-12"];
+
+        // Estados Globales
+        let turnoSeleccionado = "todos";
+        let diasDescansoSeleccionados = [];
+        let diasHabilesSeleccionados = []; 
+        let rolInicioSeleccionado = "ninguno";
+        let marcaSeleccionada = "ninguno";
+        let diasPreviosDisfrutados = 0;
+        let mapaAnioCalculado = {}; 
+        let mesesConVacaciones = new Set(); // Nuevo estado para ocultar meses
+
+        // Manejo del Bottom Sheet en Móviles
+        function toggleFiltros() {
+            if (window.innerWidth >= 768) return; 
+
+            const sheet = document.getElementById('filtros-sheet');
+            const content = sheet.children[0];
+            
+            if (sheet.classList.contains('opacity-0')) {
+                sheet.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-full');
+            } else {
+                sheet.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-full');
+            }
+        }
+
+        function obtenerDiasEfectivosCalendario(marca, turno) {
+            if (marca === "ninguno") return 0;
+            const diasBaseContrato = catalogoMarcasDisfrute[marca];
+            
+            if (turno === "nocturno") {
+                return Math.round(diasBaseContrato / 1.6667); 
+            } else if (turno === "acumulada") {
+                return Math.round(diasBaseContrato / 2.5); 
+            }
+            return diasBaseContrato; 
+        }
+
+        function calcularEstructuraAnio() {
+            mapaAnioCalculado = {};
+            mesesConVacaciones.clear(); // Limpiamos el Set cada vez que calculamos
+            let totalH = 0;
+            let totalDescansosYLibres = 0;
+
+            mesesData.forEach(mes => {
+                for (let dia = 1; dia <= mes.dias; dia++) {
+                    const key = `${dia}-${mes.id}`;
+                    const fechaObj = new Date(2026, mes.id - 1, dia);
+                    const diaSemana = fechaObj.getDay(); 
+
+                    if (festivos2026.includes(key)) {
+                        mapaAnioCalculado[key] = 'F';
+                    } else if (diasDescansoSeleccionados.includes(diaSemana)) {
+                        mapaAnioCalculado[key] = 'D';
+                        totalDescansosYLibres++;
+                    } else {
+                        if (diasHabilesSeleccionados.length > 0) {
+                            if (diasHabilesSeleccionados.includes(diaSemana)) {
+                                mapaAnioCalculado[key] = 'H';
+                                totalH++;
+                            } else {
+                                mapaAnioCalculado[key] = 'N'; 
+                                totalDescansosYLibres++;
+                            }
+                        } else {
+                            mapaAnioCalculado[key] = 'H';
+                            totalH++;
+                        }
+                    }
+                }
+            });
+
+            const diasEfectivosBase = obtenerDiasEfectivosCalendario(marcaSeleccionada, turnoSeleccionado);
+            let habilesRestantes = Math.max(0, diasEfectivosBase - diasPreviosDisfrutados);
+
+            // Inyección de Vacaciones (V) y Rastreo de Meses Activos
+            if (marcaSeleccionada !== "ninguno" && rolInicioSeleccionado !== "ninguno" && habilesRestantes > 0) {
+                const inicioRegla = catalogoRolesInicio[rolInicioSeleccionado];
+                let mActual = inicioRegla.mes;
+                let dActual = inicioRegla.dia;
+
+                // Siempre mostrar el mes de inicio, incluso si el primer día es descanso
+                mesesConVacaciones.add(mActual);
+
+                while (habilesRestantes > 0 && mActual <= 12) {
+                    const llaveDia = `${dActual}-${mActual}`;
+                    const estadoActual = mapaAnioCalculado[llaveDia];
+
+                    if (estadoActual === 'H') {
+                        mapaAnioCalculado[llaveDia] = 'V';
+                        mesesConVacaciones.add(mActual); // Registrar el mes donde cae la vacación
+                        habilesRestantes--;
+                    }
+
+                    dActual++;
+                    const diasMaximosMes = mesesData[mActual - 1].dias;
+                    if (dActual > diasMaximosMes) {
+                        dActual = 1;
+                        mActual++;
+                    }
+                }
+            }
+
+            
+            if (marcaSeleccionada !== "ninguno") {
+                const netosAProgramar = Math.max(0, diasEfectivosBase - diasPreviosDisfrutados);
+                if (diasPreviosDisfrutados > 0) {
+                    document.getElementById('metric-disfrute-dias').innerHTML = `${netosAProgramar} Días <span class="text-xs font-normal text-gray-500 block">(${diasEfectivosBase} Base - ${diasPreviosDisfrutados} Previos)</span>`;
+                } else if (turnoSeleccionado === "nocturno" || turnoSeleccionado === "acumulada") {
+                    const diasContrato = catalogoMarcasDisfrute[marcaSeleccionada];
+                    document.getElementById('metric-disfrute-dias').innerHTML = `${diasEfectivosBase} Días <span class="text-xs font-normal text-gray-500 block">(Equiv. a ${diasContrato} contractuales)</span>`;
+                } else {
+                    document.getElementById('metric-disfrute-dias').innerText = `${diasEfectivosBase} Días`;
+                }
+            } else {
+                document.getElementById('metric-disfrute-dias').innerText = "0 Días";
+            }
+        }
+
+        // Interceptores de UI
+        document.getElementById('filter-turno').addEventListener('change', function(e) {
+            turnoSeleccionado = e.target.value;
+            const comboDescanso = document.getElementById('filter-descanso');
+            comboDescanso.innerHTML = '';
+            diasDescansoSeleccionados = []; 
+            diasHabilesSeleccionados = [];
+            
+            if (turnoSeleccionado === 'todos') {
+                comboDescanso.disabled = true;
+                comboDescanso.className = "w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-400";
+                comboDescanso.innerHTML = '<option value="">-- Seleccione un turno primero --</option>';
+            } else {
+                comboDescanso.disabled = false;
+                comboDescanso.className = "w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-700 focus:outline-none";
+                comboDescanso.innerHTML = '<option value="-1">-- Selecciona Esquema de Descanso --</option>';
+                
+                estructuraDescansos[turnoSeleccionado].forEach((opt, index) => {
+                    comboDescanso.innerHTML += `<option value="${index}">${opt.label}</option>`;
+                });
+            }
+            ejecutarCiclo();
+        });
+
+        document.getElementById('filter-descanso').addEventListener('change', function(e) {
+            const index = parseInt(e.target.value);
+            if (index >= 0 && turnoSeleccionado !== "todos") {
+                const config = estructuraDescansos[turnoSeleccionado][index];
+                diasDescansoSeleccionados = config.descansos;
+                diasHabilesSeleccionados = config.habiles || [];
+            } else {
+                diasDescansoSeleccionados = [];
+                diasHabilesSeleccionados = [];
+            }
+            ejecutarCiclo();
+        });
+
+        document.getElementById('filter-rol-inicio').addEventListener('change', function(e) {
+            rolInicioSeleccionado = e.target.value;
+            ejecutarCiclo();
+        });
+
+        document.getElementById('filter-disfrute').addEventListener('change', function(e) {
+            marcaSeleccionada = e.target.value;
+            ejecutarCiclo();
+        });
+
+        document.getElementById('filter-previos').addEventListener('input', function(e) {
+            const val = parseInt(e.target.value);
+            diasPreviosDisfrutados = isNaN(val) || val < 0 ? 0 : val;
+            ejecutarCiclo();
+        });
+
+        function ejecutarCiclo() {
+            calcularEstructuraAnio();
+            renderCalendario();
+        }
+
+        // Renderizador de Tableros
+        function renderCalendario() {
+            const wrapper = document.getElementById('calendar-wrapper');
+            wrapper.innerHTML = '';
+
+            // Verificar si debemos filtrar los meses
+            const aplicarFiltroDeMeses = marcaSeleccionada !== "ninguno" && rolInicioSeleccionado !== "ninguno" && mesesConVacaciones.size > 0;
+
+            mesesData.forEach(mes => {
+                // LÓGICA NUEVA: Si aplica el filtro y el mes actual no está en el Set, nos lo saltamos.
+                if (aplicarFiltroDeMeses && !mesesConVacaciones.has(mes.id)) {
+                    return; 
+                }
+
+                let html = `
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
+                            <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
+                                <i class="fa-regular fa-calendar text-emerald-700"></i>
+                                <span>${mes.nombre}</span>
+                            </h3>
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-gray-400 mb-2">
+                                <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center">
+                `;
+
+                for (let i = 0; i < mes.startOffset; i++) {
+                    html += `<div class="p-2"></div>`;
+                }
+
+                for (let dia = 1; dia <= mes.dias; dia++) {
+                    const key = `${dia}-${mes.id}`;
+                    const estadoDia = mapaAnioCalculado[key] || 'H';
+
+                    let markClasses = "bg-gray-50 text-gray-700 hover:bg-gray-100";
+                    let badgeHtml = "";
+
+                    if (estadoDia === 'F') {
+                        markClasses = "bg-red-50 text-red-700 border border-red-200 font-bold hover:bg-red-100";
+                        badgeHtml = `<span class="text-[8px] block text-red-500 font-extrabold -mt-1">F</span>`;
+                    } else if (estadoDia === 'D') {
+                        markClasses = "bg-gray-700 text-white font-bold hover:bg-gray-800 shadow-sm";
+                        badgeHtml = `<span class="text-[8px] block text-gray-300 font-medium -mt-1">D</span>`;
+                    } else if (estadoDia === 'N') {
+                        markClasses = "bg-gray-200 text-gray-500 border border-dashed border-gray-300 hover:bg-gray-300";
+                        badgeHtml = `<span class="text-[8px] block text-gray-400 font-semibold -mt-1">N</span>`;
+                    } else if (estadoDia === 'V') {
+                        markClasses = "bg-amber-500 text-white font-bold hover:bg-amber-600 shadow-md transform scale-105 border border-amber-600 z-10";
+                        badgeHtml = `<span class="text-[8px] block text-amber-100 font-extrabold -mt-1">V-${marcaSeleccionada}</span>`;
+                    } else if (estadoDia === 'H') {
+                        markClasses = "bg-emerald-50/60 text-emerald-900 border border-emerald-100 hover:bg-emerald-100";
+                        badgeHtml = `<span class="text-[8px] block text-emerald-600/70 -mt-1">H</span>`;
+                    }
+
+                    html += `
+                        <button onclick="openModal('${dia} de ${mes.nombre}', '${estadoDia}')" class="${markClasses} p-2 rounded-xl text-xs font-medium flex flex-col items-center justify-between h-12 transition-all duration-150">
+                            <span>${dia}</span>
+                            ${badgeHtml}
+                        </button>
+                    `;
+                }
+
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+                wrapper.innerHTML += html;
+            });
+        }
+
+        // Modal Informativo
+        function openModal(dateStr, estadoDia) {
+            document.getElementById('modal-date-title').innerText = `Detalle: ${dateStr} de 2026`;
+            let statusText = "Día Laborable Ordinario (H)";
+            if (estadoDia === 'F') statusText = "Día Festivo Oficial IMSS (F) - Saltado de las vacaciones";
+            if (estadoDia === 'D') statusText = "Día de Descanso del Trabajador (D) - Saltado de las vacaciones";
+            if (estadoDia === 'N') statusText = "Día No Laborable de Rol (N) - Totalmente protegido y omitido";
+            if (estadoDia === 'V') {
+                const base = obtenerDiasEfectivosCalendario(marcaSeleccionada, turnoSeleccionado);
+                const netos = Math.max(0, base - diasPreviosDisfrutados);
+                statusText = `Día Vacacional Concedido. El sistema está proyectando solo ${netos} días en calendario, dado que el trabajador ya consumió ${diasPreviosDisfrutados} días previamente de sus ${base} originales del periodo.`;
+            }
+            
+            document.getElementById('modal-day-status').innerText = statusText;
+
+            const modal = document.getElementById('day-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        function closeModal() {
+            const modal = document.getElementById('day-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.add('scale-95');
+        }
+
+        window.onload = function() {
+            calcularEstructuraAnio();
+            renderCalendario();
+        };
+
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // Prevenir zoom en input campos en iOS
+        document.addEventListener('touchmove', function(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') {
+                event.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
